@@ -24,9 +24,9 @@ userRouter.post("/login", async (req, res) => {
         // Si las credenciales son válidas, entonces se genera un token JWT
         if (rows.length == 1){
             const token = jwt.sign({
-                user_id: rows[0].user_id,
-                user_name: rows[0].user_name,
-            }, "debugkey", {expiresIn: "8h"});
+                user_id: rows[0].id,
+                user_name: rows[0].username,
+            }, "debugkey", {expiresIn: "1h"});
 
             res.status(200).json({code: 200, message: token});
         }else {

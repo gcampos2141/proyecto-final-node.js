@@ -5,7 +5,7 @@ const sql = require('../config/database');
 //ruta para obtener todos los empleados
 userRouter.get("/obtenerEmpleados", async (req, res) => {
     try {
-        const query = "SELECT* FROM EMPLEADOS";
+        const query = "SELECT* FROM empleados";
         const rows = await sql.query(query);
         res.status(200).json({ code: 200, message: rows });
     }catch (error) {
@@ -22,10 +22,10 @@ userRouter.post("/agregarEmpledo", async (req, res) => {
         }
 
         const {nombre, apellidos, telefono, email, direccion} = req.body;
-        const query = "INSERT INTO EMPLEADOS (nombre, apellidos, telefono, email, direccion) VALUES (?,?,?,?,?)";
+        const query = "INSERT INTO empleados (nombre, apellidos, telefono, email, direccion) VALUES (?,?,?,?,?)";
 
         const result = await sql.query(query, [nombre, apellidos, telefono, email, direccion]);
-        res.status(201).json({code:201, message: "Empleado agregado correctamente", empleadoId: result.insertId});
+        res.status(201).json({code:201, message: "Empleado agregado correctamente", id: result.insertId});
 
 
     }catch (error) {
@@ -41,10 +41,10 @@ userRouter.put("/actualizarEmpleado", async (req, res) => {
             return res.status(400).json({code:400, message: "Faltan datos del empleado"});
         }
 
-        const {empleadoId, nombre, apellidos, telefono, email, direccion} = req.body;
-        const query = "UPDATE EMPLEADOS SET nombre = ?, apellidos = ?, telefono = ?, email = ?, direccion = ? WHERE id = ?";
+        const {id, nombre, apellidos, telefono, email, direccion} = req.body;
+        const query = "UPDATE empleados SET nombre = ?, apellidos = ?, telefono = ?, email = ?, direccion = ? WHERE id = ?";
 
-        await sql.query(query, [nombre, apellidos, telefono, email, direccion, empleadoId]);
+        await sql.query(query, [nombre, apellidos, telefono, email, direccion, id]);
 
         res.status(200).json({code:200, message: "Empleado actualizado correctamente"});
     }catch (error) {
@@ -61,10 +61,10 @@ userRouter.delete("/eliminarEmpleado", async (req, res) => {
             return res.status(400).json({code:400, message: "Falta el ID del empleado"});
         }
 
-        const {empleadoId} = req.body;
-        const query = "DELETE FROM EMPLEADOS WHERE id = ?";
+        const {id} = req.body;
+        const query = "DELETE FROM empleados WHERE id = ?";
         
-        await sql.query(query, empleadoId);
+        await sql.query(query, id);
 
         res.status(200).json({code:200, message: "Empleado eliminado correctamente"});
     }catch (error) {
