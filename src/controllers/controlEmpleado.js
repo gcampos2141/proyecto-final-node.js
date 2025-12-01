@@ -37,7 +37,7 @@ userRouter.post("/agregarEmpledo", async (req, res) => {
 //ruta actualizar empleado
 userRouter.put("/actualizarEmpleado", async (req, res) => {
     try{
-        if (!req.body.empleadoId || !req.body.nombre || !req.body.apellidos || !req.body.telefono || !req.body.email || !req.body.direccion) {
+        if (!req.body.id || !req.body.nombre || !req.body.apellidos || !req.body.telefono || !req.body.email || !req.body.direccion) {
             return res.status(400).json({code:400, message: "Faltan datos del empleado"});
         }
 
@@ -57,7 +57,7 @@ userRouter.put("/actualizarEmpleado", async (req, res) => {
 //ruta eliminar empleado
 userRouter.delete("/eliminarEmpleado", async (req, res) => {
     try{
-        if (!req.body.empleadoId) {
+        if (!req.body.id) {
             return res.status(400).json({code:400, message: "Falta el ID del empleado"});
         }
 
