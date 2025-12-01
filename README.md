@@ -11,7 +11,11 @@ Cuenta con un **backend robusto en Node.js/Express** protegido mediante **JWT**,
 El proyecto está desplegado y funcionando en el siguiente enlace:
 
 **[Ver Aplicación en Render](https://proyecto-final-node-js-v480.onrender.com)**  
-*(Reemplaza con tu URL)*
+
+
+**Registro desde Render**
+- **Usuario** - admin
+- **Contraseña** - 12345
 
 > **Nota:**  
 > El backend está alojado en **Render** y la base de datos en **Clever Cloud**.  
