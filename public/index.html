@@ -23,10 +23,9 @@
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
 
     <script>
-        const URL_BACKEND_RENDER = "https://proyecto-final-node-js-v480.onrender.com"; 
+        const URL_BACKEND_RENDER = "https://proyecto-final-node-js-v480.onrender.com/node"; 
         
-        const API_BASE_URL = (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))
-            ? "http://localhost:3000/node" : (URL_BACKEND_RENDER || "/node");
+        const API_BASE_URL = (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')) ? "http://localhost:3000/node" : (URL_BACKEND_RENDER || "/node");
     </script>
 
     <!-- ================= LOGIN ================= -->
