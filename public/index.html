@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión - Taller Node.js</title>
+    <title>Gestión RRHH - Taller Node.js</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Iconos -->
@@ -22,9 +22,11 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
 
-    <!-- CONFIGURACIÓN API -->
     <script>
-        const API_BASE_URL = "http://localhost:3000/node"; 
+        const URL_BACKEND_RENDER = "https://proyecto-final-node-js-v480.onrender.com"; 
+        
+        const API_BASE_URL = (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))
+            ? "http://localhost:3000/node" : (URL_BACKEND_RENDER || "/node");
     </script>
 
     <!-- ================= LOGIN ================= -->

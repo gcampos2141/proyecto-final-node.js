@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 const authJWT = require('./src/middleware/auth'); // Middleware de verificación de token
 const notFound = require("./src/middleware/notFound"); // Manejo de errores 404
 
-// Rutas sin seguridad (solo necesitan login)
+// Rutas sin seguridad (necesitan login)
 const authRoutes = require("./src/routes/user"); // Ruta para /login
 
 // Rutas con seguridad (requieren token)
@@ -35,8 +35,7 @@ app.use("/node", authRoutes);
 app.use(authJWT);
 app.use("/node/empleados", empleadoRoutes);
 
-// 6. MANEJO DE ERRORES (Debe ir al final)
-app.use(notFound);
+// 6. MANEJO DE ERRORES 
 
 
 // 7. INICIO DEL SERVIDOR
