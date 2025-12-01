@@ -205,12 +205,11 @@
         </div>
     </div>
 
-    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <!-- ================= JAVASCRIPT ================= -->
     <script>
-        // --- ESTADO GLOBAL ---
-        let allEmployees = []; // Almacenamos aquí para poder filtrar sin recargar
 
-        // --- INICIO ---
+        let allEmployees = []; 
+
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (token) showDashboard();
@@ -240,7 +239,7 @@
             };
         }
 
-        // --- 1. LOGIN ---
+        // --- LOGIN ---
         async function handleLogin(e) {
             e.preventDefault();
             const user_name = document.getElementById('username').value;
@@ -276,7 +275,7 @@
             }
         }
 
-        // --- 2. LEER EMPLEADOS & BÚSQUEDA (CRÍTICO PARA RÚBRICA) ---
+        // --- LEER EMPLEADOS & BÚSQUEDA ---
         async function loadEmployees() {
             const spinner = document.getElementById('loading-spinner');
             const tbody = document.getElementById('employees-table-body');
@@ -328,9 +327,9 @@
             noData.classList.add('hidden');
 
             list.forEach(emp => {
-                const id = emp.empleadoId || emp.id;
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-200 hover:bg-gray-50 transition";
+
                 tr.innerHTML = `
                     <td class="py-3 px-6 text-left whitespace-nowrap">
                         <div class="flex items-center">
@@ -367,11 +366,12 @@
             });
         }
 
-        // --- 3. CREAR / EDITAR ---
+        // --- CREAR / EDITAR ---
         async function handleFormSubmit(e) {
             e.preventDefault();
+
             const id = document.getElementById('emp-id').value;
-            const isEdit = !!id;
+            const isEdit = id !== "";
 
             const payload = {
                 nombre: document.getElementById('emp-nombre').value,
@@ -381,81 +381,92 @@
                 direccion: document.getElementById('emp-direccion').value
             };
 
-            // NOTA: Ajusta esto a 'agregarEmpleado' si corriges tu backend. 
-            // Actualmente lo dejo como tu backend original 'agregarEmpledo'.
-            const url = isEdit 
-                ? `${API_BASE_URL}/empleados/actualizarEmpleado` 
-                : `${API_BASE_URL}/empleados/agregarEmpledo`; 
-            
-            const method = isEdit ? 'PUT' : 'POST';
-            if (isEdit) payload.empleadoId = id;
+            let url;
+            let method;
+
+            if (isEdit) {
+                payload.id = id; 
+                url = `${API_BASE_URL}/empleados/actualizarEmpleado`;
+                method = "PUT";
+            } else {
+                url = `${API_BASE_URL}/empleados/agregarEmpleado`; // nombre del endpoint real
+                method = "POST";
+            }
 
             try {
                 const response = await fetch(url, {
-                    method: method,
+                    method,
                     headers: getAuthHeaders(),
                     body: JSON.stringify(payload)
                 });
+
                 const data = await response.json();
 
                 if (data.code === 200 || data.code === 201) {
                     Swal.fire({
                         icon: 'success',
-                        title: isEdit ? 'Actualizado' : 'Guardado',
-                        text: 'La operación se realizó con éxito',
-                        timer: 1500, showConfirmButton: false
+                        title: isEdit ? 'Actualizado' : 'Registrado',
+                        timer: 1500,
+                        showConfirmButton: false
                     });
+
                     closeModal();
                     loadEmployees();
                 } else {
-                    Swal.fire('Error', data.message, 'error');
+                    Swal.fire("Error", data.message, "error");
                 }
-            } catch (error) {
-                Swal.fire('Error', 'Fallo en la solicitud', 'error');
+            } catch (err) {
+                Swal.fire("Error", "No se pudo procesar la solicitud", "error");
             }
         }
 
-        // --- 4. ELIMINAR ---
+        // --- ELIMINAR ---
         async function deleteEmployee(id) {
-            const result = await Swal.fire({
-                title: '¿Eliminar empleado?',
-                text: "Esta acción no se puede deshacer",
-                icon: 'warning',
+
+            const confirm = await Swal.fire({
+                title: "¿Eliminar empleado?",
+                text: "Esta acción no se puede revertir",
+                icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#9ca3af',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
+                confirmButtonColor: "#ef4444",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Eliminar"
             });
 
-            if (result.isConfirmed) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/empleados/eliminarEmpleado`, {
-                        method: 'DELETE',
-                        headers: getAuthHeaders(),
-                        body: JSON.stringify({ empleadoId: id })
-                    });
-                    const data = await response.json();
+            if (!confirm.isConfirmed) return;
 
-                    if (data.code === 200) {
-                        Swal.fire('Eliminado', 'El registro ha sido borrado.', 'success');
-                        loadEmployees(); // Recargar lista
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                } catch (error) {
-                    Swal.fire('Error', 'No se pudo eliminar', 'error');
+            try {
+                const response = await fetch(`${API_BASE_URL}/empleados/eliminarEmpleado`, {
+                    method: "DELETE",
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id })   // **BACKEND REQUIERE "id"**
+                });
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    Swal.fire("Eliminado", "El registro fue borrado", "success");
+                    loadEmployees();
+                } else {
+                    Swal.fire("Error", data.message, "error");
                 }
+            } catch (err) {
+                Swal.fire("Error", "No se pudo eliminar", "error");
             }
         }
 
         // --- MODAL UTILS ---
         const modal = document.getElementById('employee-modal');
-        function openModal() {
-            document.getElementById('employee-form').reset();
-            document.getElementById('emp-id').value = "";
-            document.getElementById('modal-title').innerText = "Nuevo Empleado";
-            modal.classList.remove('hidden');
+        function openEditModal(emp) {
+            document.getElementById('emp-id').value = emp.id;
+            document.getElementById('emp-nombre').value = emp.nombre;
+            document.getElementById('emp-apellidos').value = emp.apellidos;
+            document.getElementById('emp-telefono').value = emp.telefono;
+            document.getElementById('emp-email').value = emp.email;
+            document.getElementById('emp-direccion').value = emp.direccion;
+
+            document.getElementById('modal-title').innerText = "Editar Empleado";
+            modal.classList.remove("hidden");
         }
         function openEditModal(emp) {
             const id = emp.empleadoId || emp.id;

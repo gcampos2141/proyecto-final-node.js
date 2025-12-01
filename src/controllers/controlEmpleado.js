@@ -15,7 +15,7 @@ userRouter.get("/obtenerEmpleados", async (req, res) => {
 });
 
 //ruta agregar empleados
-userRouter.post("/agregarEmpledo", async (req, res) => {
+userRouter.post("/agregarEmpleado", async (req, res) => {
     try{
         if (!req.body.nombre || !req.body.apellidos || !req.body.telefono || !req.body.email || !req.body.direccion) {
             return res.status(400).json({code:400, message: "Faltan datos del empleado"});
