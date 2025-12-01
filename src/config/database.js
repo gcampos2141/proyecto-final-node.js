@@ -5,7 +5,10 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'taller_node_db'
+  database: process.env.DB_NAME || 'taller_node_db',
+
+  connectionLimit: 5, 
+  idleTimeout: 60000
 });
 
 pool.query = util.promisify(pool.query);
