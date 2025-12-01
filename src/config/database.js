@@ -2,11 +2,10 @@ const mysql = require('mysql2');
 const util = require('util');
 
 const pool = mysql.createPool({
-  connectionLimit: 10,
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'taller_node_db'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'taller_node_db'
 });
 
 pool.query = util.promisify(pool.query);
