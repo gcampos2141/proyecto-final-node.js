@@ -1,0 +1,40 @@
+{
+  "name": "proyecto-final-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "",
+    "url": "git+https://github.com/gcampos2141/proyecto-final-node.js.git"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "jwt",
+    "mysql"
+  ],
+  "author": "Gabriel Campos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gcampos2141/proyecto-final-node.js/issues"
+  },
+  "homepage": "https://github.com/gcampos2141/proyecto-final-node.js#readme",
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.15.3",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

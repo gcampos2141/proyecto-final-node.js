@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión - Taller Node.js</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Spinner */
+        .loader { border-top-color: #4f46e5; animation: spinner 1s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- CONFIGURACIÓN API -->
+    <script>
+        const API_BASE_URL = "http://localhost:3000/node"; 
+    </script>
+
+    <!-- ================= LOGIN ================= -->
+    <div id="login-view" class="flex-grow flex items-center justify-center bg-gray-900 px-4">
+        <!-- Fondo decorativo -->
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 to-gray-900 opacity-90"></div>
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30"></div>
+
+        <div class="relative bg-white p-8 rounded-xl shadow-2xl w-full max-w-md fade-in border-t-4 border-indigo-600">
+            <div class="text-center mb-8">
+                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-shield text-3xl text-indigo-600"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-gray-800">Acceso Administrativo</h2>
+                <p class="text-gray-500 text-sm mt-2">Taller de Node.js S.A. de C.V.</p>
+            </div>
+            
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Usuario</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" 
+                                   id="username" type="text" placeholder="Ingresa tu usuario" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" 
+                                   id="password" type="password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+                <button class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg transform hover:-translate-y-0.5 transition duration-200" 
+                        type="submit" id="btn-login">
+                    INICIAR SESIÓN
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= DASHBOARD ================= -->
+    <div id="dashboard-view" class="hidden min-h-screen flex flex-col bg-gray-50">
+        <!-- Navbar -->
+        <nav class="bg-indigo-700 text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-building text-2xl"></i>
+                        <span class="font-bold text-xl tracking-wide"> Taller Node.Js</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="hidden md:flex flex-col text-right">
+                            <span class="text-xs text-indigo-200">Usuario</span>
+                            <span id="user-display" class="font-semibold text-sm">Admin</span>
+                        </div>
+                        <button onclick="logout()" class="bg-indigo-800 hover:bg-red-600 p-2 rounded-full transition duration-300 shadow-inner text-white" title="Cerrar Sesión">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido -->
+        <main class="flex-grow container mx-auto px-4 py-8 fade-in">
+            
+            <!-- Header y Buscador -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Directorio de Empleados</h1>
+                    <p class="text-gray-500">Gestiona las altas, bajas y cambios.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <!-- BARRA DE BÚSQUEDA (REQUERIMIENTO RÚBRICA) -->
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="search-input" onkeyup="filterEmployees()" 
+                               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
+                               placeholder="Buscar por nombre...">
+                    </div>
+
+                    <button onclick="openModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-2"></i> Nuevo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full leading-normal">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal">
+                                <th class="py-3 px-6 text-left">Empleado</th>
+                                <th class="py-3 px-6 text-left">Contacto</th>
+                                <th class="py-3 px-6 text-left">Ubicación</th>
+                                <th class="py-3 px-6 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-table-body" class="text-gray-600 text-sm">
+                            <!--  -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Estados de carga/vacío -->
+                <div id="loading-spinner" class="hidden py-10 text-center">
+                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-10 w-10 mx-auto mb-3"></div>
+                    <p class="text-gray-400 text-sm">Conectando con base de datos...</p>
+                </div>
+                <div id="no-data-message" class="hidden py-10 text-center">
+                    <div class="bg-gray-50 inline-block p-4 rounded-full mb-2">
+                        <i class="fas fa-folder-open text-gray-400 text-3xl"></i>
+                    </div>
+                    <p class="text-gray-500">No se encontraron registros.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= MODAL ================= -->
+    <div id="employee-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg transform scale-100 transition-transform duration-300">
+            <!-- Modal Header -->
+            <div class="bg-indigo-600 px-6 py-4 rounded-t-xl flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white" id="modal-title">Empleado</h3>
+                <button onclick="closeModal()" class="text-white hover:text-gray-200 text-xl focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="employee-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="emp-id">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1 uppercase">Nombre</label>
+                        <input type="text" id="emp-nombre" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1 uppercase">Apellidos</label>
+                        <input type="text" id="emp-apellidos" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1 uppercase">Teléfono</label>
+                        <input type="text" id="emp-telefono" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1 uppercase">Email</label>
+                        <input type="email" id="emp-email" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 text-xs font-bold mb-1 uppercase">Dirección</label>
+                    <textarea id="emp-direccion" class="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none h-20" required></textarea>
+                </div>
+
+                <div class="flex justify-end pt-4 gap-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-lg transition" id="btn-save">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- ESTADO GLOBAL ---
+        let allEmployees = []; // Almacenamos aquí para poder filtrar sin recargar
+
+        // --- INICIO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (token) showDashboard();
+            else showLogin();
+        });
+
+        function showLogin() {
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            loadEmployees();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            showLogin();
+        }
+
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            };
+        }
+
+        // --- 1. LOGIN ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user_name = document.getElementById('username').value;
+            const user_password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Validando...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_name, user_password })
+                });
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    localStorage.setItem('token', data.message);
+                    showDashboard();
+                    const Toast = Swal.mixin({
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
+                    });
+                    Toast.fire({ icon: 'success', title: '¡Bienvenido!' });
+                } else {
+                    Swal.fire('Acceso denegado', 'Usuario o contraseña incorrectos', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'INICIAR SESIÓN';
+            }
+        }
+
+        // --- 2. LEER EMPLEADOS & BÚSQUEDA (CRÍTICO PARA RÚBRICA) ---
+        async function loadEmployees() {
+            const spinner = document.getElementById('loading-spinner');
+            const tbody = document.getElementById('employees-table-body');
+            
+            tbody.innerHTML = '';
+            spinner.classList.remove('hidden');
+            document.getElementById('no-data-message').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/empleados/obtenerEmpleados`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (response.status === 401) { logout(); return; }
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    allEmployees = Array.isArray(data.message) ? data.message : [];
+                    renderTable(allEmployees); // Render inicial
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Fallo al cargar la lista', 'warning');
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // FUNCION DE BÚSQUEDA (Cumple requisito de "Buscar empleados")
+        function filterEmployees() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allEmployees.filter(emp => {
+                const fullName = `${emp.nombre} ${emp.apellidos}`.toLowerCase();
+                return fullName.includes(query);
+            });
+            renderTable(filtered);
+        }
+
+        function renderTable(list) {
+            const tbody = document.getElementById('employees-table-body');
+            const noData = document.getElementById('no-data-message');
+            tbody.innerHTML = '';
+
+            if (list.length === 0) {
+                noData.classList.remove('hidden');
+                return;
+            }
+            noData.classList.add('hidden');
+
+            list.forEach(emp => {
+                const id = emp.empleadoId || emp.id;
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-200 hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-6 text-left whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-100 rounded-full h-8 w-8 flex items-center justify-center text-indigo-600 font-bold mr-3">
+                                ${emp.nombre.charAt(0)}
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-800 block">${emp.nombre} ${emp.apellidos}</span>
+                                <span class="text-xs text-gray-400">ID: ${id}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-6 text-left">
+                        <div class="flex flex-col">
+                            <span class="text-sm"><i class="fas fa-phone text-xs text-gray-400 mr-1"></i> ${emp.telefono}</span>
+                            <span class="text-xs text-indigo-500">${emp.email}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-6 text-left text-sm text-gray-600 truncate max-w-xs">
+                        ${emp.direccion}
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <div class="flex item-center justify-center">
+                            <button onclick='openEditModal(${JSON.stringify(emp)})' class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 hover:scale-110 transition mx-1" title="Editar">
+                                <i class="fas fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="deleteEmployee(${id})" class="w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:scale-110 transition mx-1" title="Eliminar">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 3. CREAR / EDITAR ---
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('emp-id').value;
+            const isEdit = !!id;
+
+            const payload = {
+                nombre: document.getElementById('emp-nombre').value,
+                apellidos: document.getElementById('emp-apellidos').value,
+                telefono: document.getElementById('emp-telefono').value,
+                email: document.getElementById('emp-email').value,
+                direccion: document.getElementById('emp-direccion').value
+            };
+
+            // NOTA: Ajusta esto a 'agregarEmpleado' si corriges tu backend. 
+            // Actualmente lo dejo como tu backend original 'agregarEmpledo'.
+            const url = isEdit 
+                ? `${API_BASE_URL}/empleados/actualizarEmpleado` 
+                : `${API_BASE_URL}/empleados/agregarEmpledo`; 
+            
+            const method = isEdit ? 'PUT' : 'POST';
+            if (isEdit) payload.empleadoId = id;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (data.code === 200 || data.code === 201) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: isEdit ? 'Actualizado' : 'Guardado',
+                        text: 'La operación se realizó con éxito',
+                        timer: 1500, showConfirmButton: false
+                    });
+                    closeModal();
+                    loadEmployees();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Fallo en la solicitud', 'error');
+            }
+        }
+
+        // --- 4. ELIMINAR ---
+        async function deleteEmployee(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar empleado?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/empleados/eliminarEmpleado`, {
+                        method: 'DELETE',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ empleadoId: id })
+                    });
+                    const data = await response.json();
+
+                    if (data.code === 200) {
+                        Swal.fire('Eliminado', 'El registro ha sido borrado.', 'success');
+                        loadEmployees(); // Recargar lista
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'No se pudo eliminar', 'error');
+                }
+            }
+        }
+
+        // --- MODAL UTILS ---
+        const modal = document.getElementById('employee-modal');
+        function openModal() {
+            document.getElementById('employee-form').reset();
+            document.getElementById('emp-id').value = "";
+            document.getElementById('modal-title').innerText = "Nuevo Empleado";
+            modal.classList.remove('hidden');
+        }
+        function openEditModal(emp) {
+            const id = emp.empleadoId || emp.id;
+            document.getElementById('emp-id').value = id;
+            document.getElementById('emp-nombre').value = emp.nombre;
+            document.getElementById('emp-apellidos').value = emp.apellidos;
+            document.getElementById('emp-telefono').value = emp.telefono;
+            document.getElementById('emp-email').value = emp.email;
+            document.getElementById('emp-direccion').value = emp.direccion;
+            document.getElementById('modal-title').innerText = "Editar Empleado";
+            modal.classList.remove('hidden');
+        }
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
